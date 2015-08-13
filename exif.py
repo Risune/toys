@@ -69,8 +69,10 @@ def create_exif(d):
     ifds.extend(i2b(num)[2:])
     datas = bytearray()
     for k, v in d.items():
+        if not v:
+            continue
         if k in reversed_fields:
-            vb = v2b(d[k])
+            vb = v2b(v)
             datas.extend(vb)
             ifds.extend(reversed_fields[k])
             ifds.extend(b'\x00\x01')
