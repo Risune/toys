@@ -91,7 +91,7 @@ def copy_on_write(rp, wp, d):
         if marker == b'\xff\xd8':
             wp.write(marker)
             wp.write(exif)
-        elif marker == b'\xff\xda':
+        elif marker[0] != b'\xff' or marker == b'\xff\xda':
             wp.write(marker)
             wp.write(rp.read())
             break

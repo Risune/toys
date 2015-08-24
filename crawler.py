@@ -11,7 +11,7 @@ import conf
 import exif
 
 
-def __crawl(url, proxy=None, timeout=10):
+def __crawl(url, proxy=None, timeout=30):
     try:
         if proxy:
             opener = urllib.request.build_opener(urllib.request.ProxyHandler({"http":proxy}))
@@ -60,9 +60,7 @@ if __name__ == "__main__":
     for m in re.findall(regexs.meta, update_page):
         detail_url = m[0].replace(" ", "%20")
         pic_url = m[1].replace(" ", "%20")
-        name = m[2]
-        time = m[3]
-        tp = m[4]
+        name, time, tp = m[2], m[3], m[4]
         comment = m[5].replace("\n", "").replace("<[^>]*>", "").replace("&nbsp;", " ")
         if "first_item" not in locals():
             first_item = "The first item is {%s, %s, %s}" % (name, time, tp)

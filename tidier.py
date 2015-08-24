@@ -24,19 +24,19 @@ def guess_name(infos, fn):
     idx = fn.rfind(".")
     name = fn[0:idx]
     ext = fn[idx+1:]
-    tokens = do_seg(name)
+    tokens = do_seg(name.lower())
     
     new_name = None
     max_score = 0
     for info in infos:
-        ts = do_seg(info["name"])
+        ts = do_seg(info["name"].lower())
         score = len(ts & tokens) * 100 / (len(tokens) + 10)
         if score > max_score:
             max_score = score
             new_name = "%s.%s" % (info2name(info), ext)
     return new_name
 
-ignore_tokens = ["x-art"]
+ignore_tokens = ["x-art", "-"]
 def do_seg(s):
     raw = re.findall(r"[a-z0-9\-]+", s)
     for banned in ignore_tokens:
@@ -77,7 +77,6 @@ if __name__ == "__main__":
                             exif_meta["status"] = "true"
                         with open(pic_abs_path, "rb") as rp:
                             with open(tmp_abs_path, "wb") as wp:
-                                print(exif_meta)
                                 exif.copy_on_write(rp, wp, exif_meta)                              
                         os.remove(pic_abs_path)
                         os.renames(tmp_abs_path, pic_abs_path)
