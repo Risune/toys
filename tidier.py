@@ -30,7 +30,7 @@ def guess_name(infos, fn):
     max_score = 0
     for info in infos:
         ts = do_seg(info["name"].lower())
-        score = len(ts & tokens) * 100 / (len(tokens) + 10)
+        score = len(ts & tokens) * 100 / (len(ts) + 10)
         if score > max_score:
             max_score = score
             new_name = "%s.%s" % (info2name(info), ext)
