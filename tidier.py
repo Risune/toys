@@ -8,17 +8,33 @@ import exif
 def read_info(root):
     infos = []
     for item in os.listdir(root):
-        with open(os.path.join(root, item), "rb") as fp:
+        path = os.path.join(root, item)
+        with open(path, "rb") as fp:
             info = exif.parse_exif(fp)
-            m = re.match(r"(\d{8}) \- (.+).jpg", item)
-            if m:
-                info["time"] = m.group(1)
-                info["name"] = m.group(2)
+        m = re.match(r"(\d{8}) \- (.+).jpg", item)
+        if m:
+            info["time"] = m.group(1)
+            info["name"] = m.group(2)
+            for it in infos:
+                if it["name"] == info["name"] and safe_get(info, "status") != "dup":
+                    print("dup: %s" % info)
+                    info["status"] = "dup"
+                    update_pic(path, info)
+                    break
+            else:
                 infos.append(info)
     return infos
 
+def safe_get(d, k):
+    if k in d:
+        return d[k]
+    else:
+        return None
+    
 def info2name(info):
-    return "%s - %s - %s" % (info["time"], info["name"], info["model"])
+    return "%s - %s - %s" % (safe_get(info, "time"), 
+                             safe_get(info, "name"), 
+                             safe_get(info, "model"))
 
 def guess_name(infos, fn):
     idx = fn.rfind(".")
@@ -35,6 +51,14 @@ def guess_name(infos, fn):
             max_score = score
             new_name = "%s.%s" % (info2name(info), ext)
     return new_name
+
+def update_pic(pic_abs_path, exif_meta):
+    tmp_abs_path = "%s.tmp" % pic_abs_path
+    with open(pic_abs_path, "rb") as rp:
+        with open(tmp_abs_path, "wb") as wp:
+            exif.copy_on_write(rp, wp, exif_meta)
+    os.remove(pic_abs_path)
+    os.renames(tmp_abs_path, pic_abs_path)
 
 ignore_tokens = ["x-art", "-"]
 def do_seg(s):
@@ -70,16 +94,11 @@ if __name__ == "__main__":
                     if fn.startswith(name):
                         # update
                         pic_name = "%s - %s.%s" % (info["time"], info["name"], "jpg")
-                        pic_abs_path = os.path.join(conf.pic_root, pic_name) 
-                        tmp_abs_path = "%s.tmp" % pic_abs_path
+                        pic_abs_path = os.path.join(conf.pic_root, pic_name)
                         with open(pic_abs_path, "rb") as fp:
                             exif_meta = exif.parse_exif(fp)
                             exif_meta["status"] = "true"
-                        with open(pic_abs_path, "rb") as rp:
-                            with open(tmp_abs_path, "wb") as wp:
-                                exif.copy_on_write(rp, wp, exif_meta)                              
-                        os.remove(pic_abs_path)
-                        os.renames(tmp_abs_path, pic_abs_path)
+                        update_pic(pic_abs_path, exif_meta)
                         statistic["true"] += 1  
                         break
             else:
