@@ -49,7 +49,6 @@ class regexs:
                     r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)</h2>[\s]*?<h2>(.*?)</h2>[\s\S]*?",
                     r"<p><p>([\s\S]*?)</p></p>"])
     rate = r"<h2>(.*?)\(\d+ votes\).*?</h2>"
-    model_list = r"<li><strong>Model\(s\):</strong>((\s*?<a.*?>(.*?)</a>\s*?)*)</li>"
     model_list = r"<h2><span>featuring</span>((\s*?<a.*?>(.*?)</a>\s*?)*)</h2>"
     model = r"<a.*?>(.*?)</a>"
 
