@@ -41,17 +41,16 @@ def crawl(url, charset=None, proxy=None, retry=3, timeout=10):
             return r if not charset else r.decode(charset)
     return None
 
-update_url = "http://www.x-art.com/ajax_process.php?action=allupdates&page=1&catname=&order=recent"
+update_url = "http://www.x-art.com/updates/"
 
 class regexs:
-    meta = "".join([r"<a.*?href=\"(.*?)\"[^>]*?>[\s]*?<img.*?src=\"(.*?)\"[^>]*?>",
-                         r"[\s]*?<span class=\"subbox\">", 
-                         r"[\s]*?<span[^>]*?><b>(.*?)\\??</b></span>",
-                         r"[\s]*?<span[^>]*?>(.*?)</span>", 
-                         r"[\s]*?<span[^>]*?>(.*?)</span>", 
-                         r"[\s]*?<span[^>]*?><p>([\s\S]*?)[\\s]*</p>"])
-    rate = r"Member's Rating[\s\S]*?<p.*?>(.*?)</p>"
+    meta = "".join([r"<li>[\s]*?<a.*?href=['\"](.*?)['\"][^>]*?>[\s]*?<div class=\"item\" data-equalizer-watch>[\s\S]*?",
+                    r"<div class=\"cover\">[\s]*?<img.*?src=\"(.*?)\"[^>]*?>[\s\S]*?",
+                    r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)</h2>[\s]*?<h2>(.*?)</h2>[\s\S]*?",
+                    r"<p><p>([\s\S]*?)</p></p>"])
+    rate = r"<h2>(.*?)\(\d+ votes\).*?</h2>"
     model_list = r"<li><strong>Model\(s\):</strong>((\s*?<a.*?>(.*?)</a>\s*?)*)</li>"
+    model_list = r"<h2><span>featuring</span>((\s*?<a.*?>(.*?)</a>\s*?)*)</h2>"
     model = r"<a.*?>(.*?)</a>"
 
 if __name__ == "__main__":
@@ -60,11 +59,11 @@ if __name__ == "__main__":
     for m in re.findall(regexs.meta, update_page):
         detail_url = m[0].replace(" ", "%20")
         pic_url = m[1].replace(" ", "%20")
-        name, time, tp = m[2], m[3], m[4]
+        name, tp, time = m[2], m[3], m[4]
         comment = m[5].replace("\n", "").replace("<[^>]*>", "").replace("&nbsp;", " ")
         if "first_item" not in locals():
-            first_item = "The first item is {%s, %s, %s}" % (name, time, tp)
-        if "HD video".lower() != tp.lower():
+            first_item = "The first item is {%s, %s, %s}" % (name, time, tp.strip())
+        if "HD video".lower() not in tp.lower():
             continue
         parse_r = urlparse(pic_url)
         pic_type = parse_r.path[parse_r.path.rfind(".")+1:]
@@ -72,7 +71,6 @@ if __name__ == "__main__":
         ntime = datetime.strptime(time, "%b %d, %Y").strftime("%Y%m%d")
         pic_name = "%s - %s.%s" % (ntime, name, pic_type)
         pic_abs_path = os.path.join(conf.pic_root, pic_name)
-        
         if not os.path.exists(pic_abs_path) or os.path.getsize(pic_abs_path) == 0:
             print(detail_url)
             detail_page = crawl(detail_url, "utf-8")
