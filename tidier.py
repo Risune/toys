@@ -102,5 +102,6 @@ if __name__ == "__main__":
                         statistic["true"] += 1  
                         break
             else:
+                print("undefined art: %s - %s" % (info["name"], info["time"]))
                 statistic["undefined"] += 1
     print(statistic)
