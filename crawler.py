@@ -31,7 +31,7 @@ def __crawl(url, proxy=None, timeout=30):
             response.close()
         except:
             return None
-def crawl(url, charset=None, proxy=None, retry=3, timeout=10):
+def crawl(url, charset=None, proxy=conf.proxy, retry=3, timeout=10):
     retry = 1 if retry < 1 else retry
     for i in range(0, retry):
         if i > 0:
