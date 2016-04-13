@@ -45,12 +45,12 @@ update_url = "http://www.x-art.com/updates/"
 
 class regexs:
     meta = "".join([r"<li>[\s]*?<a.*?href=['\"](.*?)['\"][^>]*?>[\s]*?<div class=\"item\" data-equalizer-watch>[\s\S]*?",
-                    r"<div class=\"cover\">[\s]*?<img.*?src=\"(.*?)\"[^>]*?>[\s\S]*?",
-                    r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)</h2>[\s]*?<h2>(.*?)</h2>[\s\S]*?",
-                    r"<p><p>([\s\S]*?)</p></p>"])
+                    r"<div class=\"item-img\">[\s]*?<img.*\[(.*?), \(large\)\].*?>[\s\S]*?",
+                    r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)(</h2>)?[\s]*?<h2>(.*?)</h2>[\s\S]*?"])
     rate = r"<h2>(.*?)\(\d+ votes\).*?</h2>"
     model_list = r"<h2><span>featuring</span>((\s*?<a.*?>(.*?)</a>\s*?)*)</h2>"
     model = r"<a.*?>(.*?)</a>"
+    comment = r"<cite>\s*?(.*?)\s*?</cite>"
 
 if __name__ == "__main__":
     update_page = crawl(update_url, "utf-8")
@@ -58,8 +58,8 @@ if __name__ == "__main__":
     for m in re.findall(regexs.meta, update_page):
         detail_url = m[0].replace(" ", "%20")
         pic_url = m[1].replace(" ", "%20")
-        name, tp, time = m[2], m[3], m[4]
-        comment = m[5].replace("\n", "").replace("<[^>]*>", "").replace("&nbsp;", " ")
+        name, tp, time = m[2], m[3], m[5]
+        comment = re.sub(r"<[^>]*>", "", m[5].replace("\n", "").replace("&nbsp;", " "))
         if "first_item" not in locals():
             first_item = "The first item is {%s, %s, %s}" % (name, time, tp.strip())
         if "HD video".lower() not in tp.lower():
@@ -82,6 +82,10 @@ if __name__ == "__main__":
                 models = ", ".join(m) if m else None
             else:
                 models = None
+            m = re.search(regexs.comment, detail_page)
+            comment = m.group(1) if m else None
+            if comment:
+                comment = re.sub(r"<[^>]*>", "", comment.strip().replace("\n", "").replace("&nbsp;", " "))
             print("saving pic: %s location: %s" % (pic_url, pic_name))
             print("\tmodels:%s comment:%s rate:%s" % (models, comment, rate))
             add_cnt += 1
