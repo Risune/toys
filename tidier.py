@@ -70,7 +70,6 @@ def do_seg(s):
 
 if __name__ == "__main__":
     infos = read_info(conf.pic_root)
-    
     for fn in os.listdir(conf.root):
         abs_path = os.path.join(conf.root, fn)
         if os.path.isfile(abs_path):

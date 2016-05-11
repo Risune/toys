@@ -48,9 +48,18 @@ class regexs:
                     r"<div class=\"item-img\">[\s]*?<img.*\[(.*?), \(large\)\].*?>[\s\S]*?",
                     r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)(</h2>)?[\s]*?<h2>(.*?)</h2>[\s\S]*?"])
     rate = r"<h2>(.*?)\(\d+ votes\).*?</h2>"
-    model_list = r"<h2><span>featuring</span>((\s*?<a.*?>(.*?)</a>\s*?)*)</h2>"
+    model_list = r"<h2><span>featuring</span>((\s*?<a.*?>(.*?)</a>\s*?\|?)*)</h2>"
     model = r"<a.*?>(.*?)</a>"
-    comment = r"<cite>\s*?(.*?)\s*?</cite>"
+    #comment = r"<p>\s*?<p>\s*?<span[^>]*?>(.*?)</span></p>\s*?</p>"
+    comment = r"<p>([^<]*?)</p>"
+
+def _seek_comment(s):
+    comment = None
+    for m in re.findall(regexs.comment, s):
+        tmp = re.sub(r"<[^>]*>", "", m.strip().replace("\n", "").replace("&nbsp;", " "))
+        if comment is None or len(tmp) > len(comment):
+            comment = tmp
+    return comment if comment is not None else "NO COMMENT!!"
 
 if __name__ == "__main__":
     update_page = crawl(update_url, "utf-8")
@@ -83,9 +92,7 @@ if __name__ == "__main__":
             else:
                 models = None
             m = re.search(regexs.comment, detail_page)
-            comment = m.group(1) if m else None
-            if comment:
-                comment = re.sub(r"<[^>]*>", "", comment.strip().replace("\n", "").replace("&nbsp;", " "))
+            comment = _seek_comment(detail_page)
             print("saving pic: %s location: %s" % (pic_url, pic_name))
             print("\tmodels:%s comment:%s rate:%s" % (models, comment, rate))
             add_cnt += 1

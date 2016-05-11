@@ -59,7 +59,7 @@ def parse_exif(fp):
 def create_exif(d):
     num = 0
     for k, v in d.items():
-        if k in reversed_fields:
+        if k in reversed_fields and v is not None:
             num += 1
     if num == 0:
         return None
@@ -69,7 +69,7 @@ def create_exif(d):
     ifds.extend(i2b(num)[2:])
     datas = bytearray()
     for k, v in d.items():
-        if not v:
+        if v is None:
             continue
         if k in reversed_fields:
             vb = v2b(v)
