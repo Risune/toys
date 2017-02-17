@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime, timedelta
 
 import conf
 import exif
@@ -25,16 +26,19 @@ def read_info(root):
                 infos.append(info)
     return infos
 
+
 def safe_get(d, k):
     if k in d:
         return d[k]
     else:
         return None
-    
+
+
 def info2name(info):
     return "%s - %s - %s" % (safe_get(info, "time"), 
                              safe_get(info, "name"), 
                              safe_get(info, "model"))
+
 
 def guess_name(infos, fn):
     idx = fn.rfind(".")
@@ -52,6 +56,7 @@ def guess_name(infos, fn):
             new_name = "%s.%s" % (info2name(info), ext)
     return new_name
 
+
 def update_pic(pic_abs_path, exif_meta):
     tmp_abs_path = "%s.tmp" % pic_abs_path
     with open(pic_abs_path, "rb") as rp:
@@ -61,6 +66,8 @@ def update_pic(pic_abs_path, exif_meta):
     os.renames(tmp_abs_path, pic_abs_path)
 
 ignore_tokens = ["x-art", "-"]
+
+
 def do_seg(s):
     raw = re.findall(r"[a-z0-9\-]+", s)
     for banned in ignore_tokens:
@@ -82,7 +89,7 @@ if __name__ == "__main__":
                     os.renames(abs_path, new_abs_path)
                     print("%s --> %s" % (fn, new_name))
     
-    statistic = {"true":0, "never":0, "undefined":0, "dup":0}
+    statistic = {"true": 0, "never": 0, "undefined": 0, "dup": 0}
     for info in infos:
         if "status" in info and info["status"] in statistic:
             statistic[info["status"]] += 1
@@ -102,5 +109,16 @@ if __name__ == "__main__":
                         break
             else:
                 print("undefined art: %s - %s" % (info["name"], info["time"]))
-                statistic["undefined"] += 1
+                pic_name = "%s - %s.%s" % (info["time"], info["name"], "jpg")
+                pic_abs_path = os.path.join(conf.pic_root, pic_name)
+                ctime = datetime.fromtimestamp(os.path.getctime(pic_abs_path))
+                if (datetime.now() - ctime) > timedelta(days=10):
+                    print("\tundefine time too long, change to never")
+                    with open(pic_abs_path, "rb") as fp:
+                        exif_meta = exif.parse_exif(fp)
+                        exif_meta["status"] = "never"
+                    update_pic(pic_abs_path, exif_meta)
+                    statistic["never"] += 1
+                else:
+                    statistic["undefined"] += 1
     print(statistic)
