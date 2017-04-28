@@ -50,7 +50,7 @@ update_url = "http://www.x-art.com/updates/"
 
 
 class regexs:
-    meta = "".join([r"<li>[\s]*?<a.*?href=['\"](.*?)['\"][^>]*?>[\s]*?<div class=\"item\" data-equalizer-watch>[\s\S]*?",
+    meta = "".join([r"<li>[\s]*?<a.*?href=['\"](.*?)['\"][^>]*?>[\s]*?<div class=\"item\">[\s\S]*?",
                     r"<div class=\"item-img\">[\s]*?<img.*?data-interchange=\".*\[(.*?),\ \(large\)\]\".*?>[\s\S]*?",
                     r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)(</h2>)?[\s]*?<h2>(.*?)</h2>[\s\S]*?"])
     rate = r"<h2>(.*?)\(\d+ votes\).*?</h2>"
@@ -73,19 +73,19 @@ if __name__ == "__main__":
     for m in re.findall(regexs.meta, update_page):
         detail_url = m[0].replace(" ", "%20")
         pic_url = m[1].replace(" ", "%20")
-        name, tp, time = m[2], m[3], m[5]
+        name, time, tp = m[2], m[3], m[5]
         if "first_item" not in locals():
             first_item = "The first item is {%s, %s, %s}" % (name, time, tp.strip())
         if "HD video".lower() not in tp.lower():
-            print("wrong type %s, ignore %s - %s" % (tp, time, name))
             continue
         parse_r = urlparse(pic_url)
         pic_type = parse_r.path[parse_r.path.rfind(".")+1:]
         
         ntime = datetime.strptime(time, "%b %d, %Y").strftime("%Y%m%d")
-        pic_name = "%s - %s.%s" % (ntime, name, pic_type)
+        pic_name = ("%s - %s.%s" % (ntime, name, pic_type)).replace("?", "").replace(":", "")
         pic_abs_path = os.path.join(conf.pic_root, pic_name)
         if not os.path.exists(pic_abs_path) or os.path.getsize(pic_abs_path) == 0:
+            print(pic_abs_path)
             detail_page = crawl(detail_url, "utf-8")
             m = re.search(regexs.rate, detail_page)
             rate = m.group(1) if m else None
@@ -102,7 +102,7 @@ if __name__ == "__main__":
             print("\tmodels:%s comment:%s rate:%s" % (models, comment, rate))
             add_cnt += 1
             img_data = crawl(pic_url)
-            with open(pic_abs_path.replace("?", ""), "wb") as wp:
+            with open(pic_abs_path, "wb") as wp:
                 exif.copy_on_write(io.BytesIO(img_data), wp, {"model":models, "rate":rate, "desc":comment})
     if add_cnt == 0:
         print("first item is %s" % first_item)
