@@ -50,7 +50,7 @@ update_url = "http://www.x-art.com/updates/"
 
 
 class regexs:
-    meta = "".join([r"<li>[\s]*?<a.*?href=['\"](.*?)['\"][^>]*?>[\s]*?<div class=\"item\">[\s\S]*?",
+    meta = "".join([r"<li>[\s]*?<a.*?href=['\"](.*?)['\"][^>]*?>[\s]*?<div class=\"item\".*?>[\s\S]*?",
                     r"<div class=\"item-img\">[\s]*?<img.*?data-interchange=\".*\[(.*?),\ \(large\)\]\".*?>[\s\S]*?",
                     r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)(</h2>)?[\s]*?<h2>(.*?)</h2>[\s\S]*?"])
     rate = r"<h2>(.*?)\(\d+ votes\).*?</h2>"
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     for m in re.findall(regexs.meta, update_page):
         detail_url = m[0].replace(" ", "%20")
         pic_url = m[1].replace(" ", "%20")
-        name, time, tp = m[2], m[3], m[5]
+        name, tp, time = m[2], m[3], m[5]
         if "first_item" not in locals():
             first_item = "The first item is {%s, %s, %s}" % (name, time, tp.strip())
         if "HD video".lower() not in tp.lower():
