@@ -51,7 +51,8 @@ update_url = "http://www.x-art.com/updates/"
 
 class regexs:
     meta = "".join([r"<li>[\s]*?<a.*?href=['\"](.*?)['\"][^>]*?>[\s]*?<div class=\"item\".*?>[\s\S]*?",
-                    r"<div class=\"item-img\">[\s]*?<img.*?data-interchange=\".*\[(.*?),\ \(large\)\]\".*?>[\s\S]*?",
+                    # r"<div class=\"item-img\">[\s]*?<img.*?data-interchange=\".*\[(.*?),\ \(large\)\]\".*?>[\s\S]*?",
+                    r"<div class=\"item-img\">[\s]*?<img src=\"(.*?)\".*?>[\s\S]*?",
                     r"<h1>(.*?)</h1>[\s]*?<h2>([\s\S]*?)(</h2>)?[\s]*?<h2>(.*?)</h2>[\s\S]*?"])
     rate = r"<h2>(.*?)\(\d+ votes\).*?</h2>"
     model_list = r"<h2><span>featuring</span>((\s*?<a.*?>(.*?)</a>\s*?\|?)*)</h2>"
